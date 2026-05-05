@@ -1,0 +1,16 @@
+server:
+  port: 4000
+
+spring:
+  application:
+    name: farmsmart-backend
+
+farmsmart:
+  cors:
+    allowed-origins: http://localhost:5173
+  auth:
+    # Default keeps the app runnable before Firebase Admin credentials are added.
+    # Set FARMSMART_AUTH_MODE=firebase when the frontend sends Firebase ID tokens.
+    mode: ${FARMSMART_AUTH_MODE:off}
+  firebase:
+    project-id: ${FIREBASE_PROJECT_ID:farmsmartv01}
