@@ -1,4 +1,5 @@
 import { PageShell } from "@/components/agri/PageShell";
+import { WeatherDecisionPanel } from "@/components/agri/WeatherDecisionPanel";
 import { CROPS } from "@/data/crops";
 import { getRecommendations } from "@/data/recommendations";
 import { apiFetch, withQuery } from "@/lib/api";
@@ -87,6 +88,9 @@ export default function FarmPlan() {
         <span className="font-semibold text-foreground">{crop.name}</span> in{" "}
         {county}.
       </p>
+
+      <WeatherDecisionPanel county={county} cropName={crop.name} compact />
+
       <ol className="relative border-l-2 border-border ml-3 space-y-6">
         {steps.map((step, index) => {
           const Icon = ICONS[step.icon];

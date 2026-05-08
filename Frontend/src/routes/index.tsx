@@ -11,6 +11,7 @@ import { apiFetch, withQuery } from "@/lib/api";
 import type { PriceRow, Recommendation, SellingGroup } from "@/types/api";
 import { TrendBadge } from "@/components/agri/TrendBadge";
 import { ListingCard } from "@/components/agri/ListingCard";
+import { WeatherDecisionPanel } from "@/components/agri/WeatherDecisionPanel";
 import { useEffect, useState } from "react";
 import {
   ArrowRight,
@@ -179,6 +180,8 @@ export default function Dashboard() {
           AI-driven decisions for your farm in {county}.
         </p>
       </div>
+
+      <WeatherDecisionPanel county={county} cropName={CROPS[top.cropId].name} />
 
       {/* Main Decision Card */}
       <section className="relative rounded-3xl overflow-hidden border border-border bg-gradient-to-br from-card to-muted/20 mb-8 shadow-lg">

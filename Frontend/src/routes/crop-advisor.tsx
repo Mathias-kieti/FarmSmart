@@ -1,4 +1,5 @@
 import { PageShell } from "@/components/agri/PageShell";
+import { WeatherDecisionPanel } from "@/components/agri/WeatherDecisionPanel";
 import { CROPS } from "@/data/crops";
 import { getRecommendations } from "@/data/recommendations";
 import { apiFetch, withQuery } from "@/lib/api";
@@ -42,6 +43,8 @@ export default function CropAdvisor() {
     <PageShell>
       <h1 className="text-2xl sm:text-3xl font-bold mb-1">Crop Advisor</h1>
       <p className="text-sm text-muted-foreground mb-6">Personalized for {county}, Kenya.</p>
+
+      <WeatherDecisionPanel county={county} cropName={bestCrop.name} compact />
 
       <section className="rounded-3xl overflow-hidden border border-border bg-card mb-6">
         <div className="grid md:grid-cols-2">
