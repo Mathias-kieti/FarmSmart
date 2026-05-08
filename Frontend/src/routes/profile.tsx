@@ -8,10 +8,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 
 export default function Profile() {
-  const { user, setUser } = useUserStore();
+  const navigate = useNavigate(); 
+  const { user, setUser, logout } = useUserStore();
   const { setCounty } = useLocationStore();
   const { listings: myListings, fetchListings } = useListingsStore();
   const [name, setName] = useState(user.name);
@@ -33,10 +35,30 @@ export default function Profile() {
     }
   };
 
+  const handleLogout = async () => {
+    try {
+      await logout();
+      toast.success("Logged out successfully");
+      navigate("/login");
+    } catch (error) {
+      toast.error("Logout failed");
+    }
+  };
+
   return (
     <PageShell>
-      <h1 className="text-2xl sm:text-3xl font-bold mb-1">My Profile</h1>
-      <p className="text-sm text-muted-foreground mb-6">Update your details so buyers can reach you.</p>
+      <div className="flex items-start justify-between mb-4">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold mb-1">My Profile</h1>
+          <p className="text-sm text-muted-foreground">
+            Update your details so buyers can reach you.
+          </p>
+        </div>
+
+        <Button variant="destructive" onClick={handleLogout}>
+          Logout
+        </Button>
+      </div>
 
       <div className="grid lg:grid-cols-[1fr_280px] gap-6">
         <form onSubmit={save} className="rounded-2xl bg-card border border-border p-6 grid gap-4">

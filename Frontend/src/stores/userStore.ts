@@ -9,6 +9,7 @@ import {
   type User as FirebaseUser,
 } from "firebase/auth";
 
+import { FirebaseError } from "firebase/app";
 import { auth } from "@/lib/firebase";
 import { apiFetch } from "@/lib/api";
 
@@ -29,13 +30,13 @@ interface SignupInput {
 }
 
 interface UserState {
-  // App profile data used by the existing FarmSmart screens.
   user: AppUser;
-  // Raw Firebase user. Use this when you need Firebase-specific fields.
   firebaseUser: FirebaseUser | null;
   isAuthenticated: boolean;
   loading: boolean;
+  authReady: boolean;
   error: string | null;
+
   setUser: (updates: Partial<Omit<AppUser, "id">>) => Promise<void>;
   signup: (input: SignupInput) => Promise<void>;
   login: (email: string, password: string) => Promise<void>;
@@ -52,6 +53,25 @@ const defaultUser: AppUser = {
 };
 
 const getErrorMessage = (error: unknown): string => {
+  if (error instanceof FirebaseError) {
+    switch (error.code) {
+      case "auth/user-not-found":
+        return "No account found with this email";
+      case "auth/invalid-credential":
+        return "Invalid email or password";
+      case "auth/invalid-email":
+        return "Invalid email address";
+      case "auth/too-many-requests":
+        return "Too many attempts. Try again later.";
+      case "auth/network-request-failed":
+        return "Network error. Check your connection.";
+      case "auth/email-already-in-use":
+        return "Email is already registered";
+      default:
+        return "Authentication failed. Please try again.";
+    }
+  }
+
   if (error instanceof Error) return error.message;
   return "Authentication failed";
 };
@@ -60,12 +80,8 @@ const buildUserFromFirebase = (
   firebaseUser: FirebaseUser | null,
   previousUser: AppUser,
 ): AppUser => {
-  // No Firebase session means the app should fall back to its local default profile.
-  if (!firebaseUser) {
-    return defaultUser;
-  }
+  if (!firebaseUser) return defaultUser;
 
-  // Firebase owns auth fields; the app keeps profile-only fields like phone/county.
   return {
     id: firebaseUser.uid,
     name:
@@ -86,14 +102,13 @@ export const useUserStore = create<UserState>()(
       firebaseUser: null,
       isAuthenticated: false,
       loading: true,
+      authReady: false,
       error: null,
 
       setUser: async (updates) => {
-        // Update Zustand first so profile changes appear immediately in the UI.
         const nextUser = { ...get().user, ...updates };
         set({ user: nextUser });
 
-        // If the user changed their name, also update Firebase Auth's display name.
         if (auth.currentUser && updates.name) {
           await updateProfile(auth.currentUser, { displayName: updates.name });
         }
@@ -102,13 +117,24 @@ export const useUserStore = create<UserState>()(
           method: "PATCH",
           body: JSON.stringify(updates),
         });
+
         set({ user: saved });
       },
 
       login: async (email, password) => {
         set({ loading: true, error: null });
+
         try {
-          await signInWithEmailAndPassword(auth, email, password);
+          const result = await signInWithEmailAndPassword(auth, email, password);
+
+          // 🔥 CRITICAL FIX: immediately set auth state
+          set({
+            user: buildUserFromFirebase(result.user, get().user),
+            firebaseUser: result.user,
+            isAuthenticated: true,
+            loading: false,
+            authReady: true,
+          });
         } catch (error) {
           set({ error: getErrorMessage(error), loading: false });
           throw error;
@@ -117,11 +143,12 @@ export const useUserStore = create<UserState>()(
 
       signup: async ({ name, email, password, phone, county }) => {
         set({ loading: true, error: null });
+
         try {
           const result = await createUserWithEmailAndPassword(auth, email, password);
           await updateProfile(result.user, { displayName: name });
 
-          const profile = {
+          const profile: AppUser = {
             id: result.user.uid,
             name,
             email,
@@ -132,14 +159,16 @@ export const useUserStore = create<UserState>()(
           set({
             firebaseUser: result.user,
             isAuthenticated: true,
-            loading: false,
             user: profile,
+            loading: false,
+            authReady: true,
           });
 
           const saved = await apiFetch<AppUser>("/profile/me", {
             method: "PATCH",
-            body: JSON.stringify({ name, email, phone, county }),
+            body: JSON.stringify(profile),
           });
+
           set({ user: saved });
         } catch (error) {
           set({ error: getErrorMessage(error), loading: false });
@@ -149,16 +178,24 @@ export const useUserStore = create<UserState>()(
 
       logout: async () => {
         set({ loading: true, error: null });
+
         try {
           await signOut(auth);
+
           set({
             user: defaultUser,
             firebaseUser: null,
             isAuthenticated: false,
             loading: false,
+            authReady: true,
           });
         } catch (error) {
-          set({ error: getErrorMessage(error), loading: false });
+          set({
+            error: getErrorMessage(error),
+            loading: false,
+            isAuthenticated: false,
+          });
+
           throw error;
         }
       },
@@ -167,15 +204,16 @@ export const useUserStore = create<UserState>()(
     }),
     {
       name: "FarmSmart-user",
-      // Firebase persists the login session itself; Zustand only persists app profile data.
+
+      // Firebase persists the auth session; Zustand only keeps app profile data.
       partialize: (state) => ({
         user: state.user,
       }),
-    },
-  ),
+    }
+  )
 );
 
-// This listener keeps Zustand synced when Firebase restores, changes, or clears a session.
+// Firebase session restore.
 onAuthStateChanged(auth, async (firebaseUser) => {
   if (!firebaseUser) {
     useUserStore.setState({
@@ -183,6 +221,7 @@ onAuthStateChanged(auth, async (firebaseUser) => {
       firebaseUser: null,
       isAuthenticated: false,
       loading: false,
+      authReady: true,
       error: null,
     });
     return;
@@ -193,6 +232,7 @@ onAuthStateChanged(auth, async (firebaseUser) => {
     firebaseUser,
     isAuthenticated: true,
     loading: false,
+    authReady: true,
     error: null,
   }));
 
@@ -200,6 +240,6 @@ onAuthStateChanged(auth, async (firebaseUser) => {
     const profile = await apiFetch<AppUser>("/profile/me");
     useUserStore.setState({ user: profile });
   } catch {
-    // Keep the Firebase-derived profile if the backend is not reachable yet.
+    // ignore backend failure
   }
 });

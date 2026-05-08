@@ -16,6 +16,7 @@ export default function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
+  // Where to navigate after login
   const from = location.state?.from?.pathname ?? "/";
 
   const handleSubmit = async (event: React.FormEvent) => {
@@ -24,9 +25,11 @@ export default function LoginForm() {
 
     try {
       await login(email, password);
+
+      // IMPORTANT: use replace to remove /login from history
       navigate(from, { replace: true });
     } catch {
-      // The store already saves the error message for the UI.
+      // error handled inside store
     }
   };
 
@@ -52,7 +55,7 @@ export default function LoginForm() {
               type="email"
               autoComplete="email"
               value={email}
-              onChange={(event) => setEmail(event.target.value)}
+              onChange={(e) => setEmail(e.target.value)}
               required
             />
           </div>
@@ -64,7 +67,7 @@ export default function LoginForm() {
               type="password"
               autoComplete="current-password"
               value={password}
-              onChange={(event) => setPassword(event.target.value)}
+              onChange={(e) => setPassword(e.target.value)}
               required
             />
           </div>
