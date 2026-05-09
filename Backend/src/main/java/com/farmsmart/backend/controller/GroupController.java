@@ -7,10 +7,13 @@ import com.farmsmart.backend.common.ApiResponse;
 import com.farmsmart.backend.domain.GroupStatus;
 import com.farmsmart.backend.domain.SellingGroup;
 import com.farmsmart.backend.dto.CreateGroupRequest;
+import com.farmsmart.backend.dto.UpdateGroupCollectionRequest;
 import com.farmsmart.backend.service.GroupService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -49,5 +52,26 @@ public class GroupController {
     @PostMapping("/{id}/join")
     public ApiResponse<SellingGroup> join(@PathVariable String id) {
         return new ApiResponse<>(groupService.join(UserContext.requireUser(), id));
+    }
+
+    @PostMapping("/{id}/leave")
+    public ApiResponse<SellingGroup> leave(@PathVariable String id) {
+        return new ApiResponse<>(groupService.leave(UserContext.requireUser(), id));
+    }
+
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void delete(@PathVariable String id) {
+        groupService.delete(UserContext.requireUser(), id);
+    }
+
+    @PatchMapping("/{id}/collection")
+    public ApiResponse<SellingGroup> updateCollection(
+            @PathVariable String id,
+            @Valid @RequestBody UpdateGroupCollectionRequest request) {
+        return new ApiResponse<>(groupService.updateCollection(
+                UserContext.requireUser(),
+                id,
+                request.collectedKg()));
     }
 }

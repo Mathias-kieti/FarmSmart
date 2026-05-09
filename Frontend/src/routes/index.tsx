@@ -81,8 +81,8 @@ export default function Dashboard() {
   const [prices, setPrices] = useState<PriceRow[]>(() => getMarketPrices(county));
   const { listings, fetchListings } = useListingsStore();
   const recentListings = listings.slice(0, 8);
-  const [backendGroups, setBackendGroups] = useState<SellingGroup[]>([]);
-  const [backendMyGroups, setBackendMyGroups] = useState<SellingGroup[]>([]);
+  const [groups, setgroups] = useState<SellingGroup[]>([]);
+  const [mygroups, setmygroups] = useState<SellingGroup[]>([]);
   const [activeGroupTab, setActiveGroupTab] = useState<"active" | "mine" | "insights">("active");
 
   useEffect(() => {
@@ -113,8 +113,8 @@ export default function Dashboard() {
     ])
       .then(([groups, myGroups]) => {
         if (!cancelled) {
-          setBackendGroups(groups);
-          setBackendMyGroups(myGroups);
+          setgroups(groups);
+          setmygroups(myGroups);
         }
       })
       .catch(() => {});
@@ -137,8 +137,8 @@ export default function Dashboard() {
     { id: 101, name: "Potato Producers Network", crop: "Potatoes", farmers: 6, target: 1500, collected: 900, priceBoost: 20, role: "Admin" },
   ];
 
-  const activeGroups = backendGroups.length
-    ? backendGroups.map((group) => ({
+  const activeGroups = groups.length
+    ? groups.map((group) => ({
         id: group.id,
         name: group.name,
         crop: CROPS[group.cropId].name,
@@ -150,8 +150,8 @@ export default function Dashboard() {
       }))
     : fallbackGroups;
 
-  const myGroups = backendMyGroups.length
-    ? backendMyGroups.map((group) => ({
+  const myGroups = mygroups.length
+    ? mygroups.map((group) => ({
         id: group.id,
         name: group.name,
         crop: CROPS[group.cropId].name,

@@ -82,6 +82,9 @@ public class FirebaseAuthFilter extends OncePerRequestFilter {
         if (path.startsWith("/api/profile")) return true;
         if (path.equals("/api/groups/mine")) return true;
         if (path.matches("/api/groups/.+/join")) return true;
+        if (path.matches("/api/groups/.+/leave")) return true;
+        if (path.matches("/api/groups/.+/collection")) return true;
+        if (path.startsWith("/api/groups") && "DELETE".equalsIgnoreCase(method)) return true;
         if (path.startsWith("/api/listings") && !"GET".equalsIgnoreCase(method)) return true;
         if (path.startsWith("/api/groups") && "POST".equalsIgnoreCase(method)) return true;
 
