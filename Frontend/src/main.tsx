@@ -8,7 +8,7 @@ import { useUserStore } from "@/stores/userStore";
 function App() {
   const authReady = useUserStore((state) => state.authReady);
 
-  // 🔐 Wait ONLY for Firebase restore
+  //  Wait ONLY for Firebase restore
   if (!authReady) {
     return (
       <div className="min-h-screen flex items-center justify-center text-sm text-muted-foreground">

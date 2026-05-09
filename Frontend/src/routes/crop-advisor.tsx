@@ -55,7 +55,7 @@ export default function CropAdvisor() {
               className="absolute inset-0 w-full h-full object-cover"
             />
             <span className="absolute top-4 left-4 px-3 py-1 rounded-full bg-success text-primary-foreground text-xs font-bold">
-              BEST PICK Â· {best.matchScore}%
+              BEST PICK {best.matchScore}%
             </span>
           </div>
           <div className="p-6 order-1 md:order-2 flex flex-col gap-3">
