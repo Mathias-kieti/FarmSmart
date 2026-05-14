@@ -1,11 +1,13 @@
 import { Link, Outlet } from "react-router-dom";
 import { Toaster } from "@/components/ui/sonner";
+import { ChatWidget } from "@/components/ui/ChatWidget";
 
 export default function RootLayout() {
   return (
     <>
       <Outlet />
       <Toaster richColors position="top-center" />
+      <ChatWidget />
     </>
   );
 }

@@ -2,6 +2,11 @@ server:
   port: 4000
 
 spring:
+  config:
+    import:
+      # Load local .env values when running from Backend/ or from the repo root.
+      - optional:file:.env[.properties]
+      - optional:file:Backend/.env[.properties]
   application:
     name: farmsmart-backend
 
@@ -14,3 +19,6 @@ farmsmart:
     mode: ${FARMSMART_AUTH_MODE:off}
   firebase:
     project-id: ${FIREBASE_PROJECT_ID:farmsmartv01}
+  flowise:
+    url: ${FARMSMART_FLOWISE_URL:}
+    api-key: ${FARMSMART_FLOWISE_API_KEY:}
